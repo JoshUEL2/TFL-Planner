@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>London Tube Status & Route Finder</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-gray-900 text-gray-200">
+
+    <div class="container mx-auto p-4 md:p-8">
+        <header class="text-center mb-8 animate-fade-in">
+            <h1 class="text-4xl md:text-5xl font-extrabold main-title">London Tube Status & Route Finder</h1>
+            <p class="text-gray-400 mt-2">Live updates and journey planning for the London Underground</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-1 space-y-6">
+                <div class="bg-gray-800/50 backdrop-blur-sm p-6 rounded-lg shadow-lg animate-fade-in fade-delay-1 border border-gray-700/50">
+                    <h2 class="text-2xl font-semibold mb-4 text-white">Find a Route</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="start-station" class="block text-sm font-medium text-gray-300">Start Station</label>
+                            <select id="start-station" class="mt-1 block w-full pl-3 pr-10 py-2 text-base bg-gray-700 border-gray-600 text-white rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></select>
+                        </div>
+                        <div>
+                            <label for="end-station" class="block text-sm font-medium text-gray-300">End Station</label>
+                            <select id="end-station" class="mt-1 block w-full pl-3 pr-10 py-2 text-base bg-gray-700 border-gray-600 text-white rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></select>
+                        </div>
+                        <button id="find-route-btn" class="w-full bg-indigo-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 focus:ring-offset-gray-800 transition-all duration-200 ease-in-out transform hover:scale-105">Find Route</button>
+                    </div>
+                </div>
+
+                <div class="bg-gray-800/50 backdrop-blur-sm p-6 rounded-lg shadow-lg animate-fade-in fade-delay-2 border border-gray-700/50">
+                    <h2 class="text-2xl font-semibold mb-4 text-white">My Journeys Heatmap</h2>
+                    <p class="text-sm text-gray-400 mb-4">Upload one or more TfL journey history CSV files to visualize your most frequent routes.</p>
+                    <input type="file" id="csv-upload" multiple accept=".csv" class="block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-500 file:text-white hover:file:bg-indigo-600 cursor-pointer"/>
+                </div>
+                
+                <div class="bg-gray-800/50 backdrop-blur-sm p-6 rounded-lg shadow-lg animate-fade-in fade-delay-3 border border-gray-700/50">
+                    <details class="group">
+                        <summary class="flex justify-between items-center font-semibold cursor-pointer text-white list-none">
+                            <span>How to download your TfL Journey History</span>
+                            <span class="transition-transform group-open:rotate-180">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </span>
+                        </summary>
+                        <div class="text-gray-400 mt-4 space-y-2 text-sm">
+                            <p>To visualize your journeys, you need to download your journey history from the TfL website.</p>
+                            <ol class="list-decimal list-inside space-y-1 pl-2">
+                                <li>Go to <a href="https://tfl.gov.uk/fares/contactless-and-oyster-account" target="_blank" class="text-indigo-400 hover:underline">tfl.gov.uk</a> and sign in.</li>
+                                <li>Select the Oyster or Contactless card you want the history for.</li>
+                                <li>Go to your "Journey & payment history".</li>
+                                <li>Select a date range (you can download up to 12 months of data at a time).</li>
+                                <li>Click "Export as CSV" to download the file.</li>
+                                <li>Upload one or more of those CSV files above.</li>
+                            </ol>
+                        </div>
+                    </details>
+                </div>
+
+                <div class="bg-gray-800/50 backdrop-blur-sm p-6 rounded-lg shadow-lg animate-fade-in fade-delay-4 border border-gray-700/50">
+                    <div class="flex items-center mb-4">
+                        <h2 class="text-2xl font-semibold text-white">Live Line Status</h2>
+                        <span class="flex h-3 w-3 ml-3">
+                            <span class="animate-pulse-live absolute inline-flex h-3 w-3 rounded-full bg-red-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                        </span>
+                    </div>
+                    <div id="line-status" class="space-y-3 max-h-96 overflow-y-auto pr-2">
+                        <div class="text-center text-gray-500">Loading line status...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-2 space-y-6">
+                <div class="bg-gray-800/50 backdrop-blur-sm p-2 md:p-4 rounded-lg shadow-lg h-[70vh] min-h-[600px] animate-fade-in fade-delay-2 border border-gray-700/50">
+                    <div id="map"></div>
+                </div>
+                <div id="route-info-container" class="bg-gray-800/50 backdrop-blur-sm p-6 rounded-lg shadow-lg hidden border border-gray-700/50">
+                    <h2 class="text-2xl font-semibold mb-4 text-white">Your Route</h2>
+                    <div id="route-info"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="message-box" class="hidden fixed top-5 right-5 bg-red-600 text-white py-3 px-5 rounded-lg shadow-lg z-[1000] border border-red-500">
+        <p id="message-box-text"></p>
+    </div>
+
+    <script type="module" src="script.js"></script>
+</body>
+</html>
